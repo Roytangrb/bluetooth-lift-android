@@ -1,0 +1,2 @@
+rootProject.name='Elevator Control'
+include ':app'
