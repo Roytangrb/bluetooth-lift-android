@@ -5,3 +5,14 @@
   - Install: Preferences/Settings->Plugins->Browse Repositories.
   - USB connect first
   - Start using wifi ADB (make sure to connect to the same Wi-Fi)
+
+## Libraries
+  - [Bleno](https://github.com/noble/bleno) Simulate BLE peripherals in Node.js
+  - [BlueCap](https://github.com/troystribling/BlueCap) 
+  - [RxBluetoothKit](https://github.com/Polidea/RxBluetoothKit)
+  - [RxAndroidBle](https://github.com/Polidea/RxAndroidBle)
+
+## BLE References
+ - [Android in peripheral mode example video](https://youtu.be/Wkk2YA4auvM)
+ - [Can an android device be a peripheral?](https://devzone.nordicsemi.com/f/nordic-q-a/26730/can-an-android-device-be-a-peripheral)
+ - [BLE on iOS introduction](https://codeburst.io/getting-started-with-bluetooth-low-energy-on-ios-ada3090fc9cc)
