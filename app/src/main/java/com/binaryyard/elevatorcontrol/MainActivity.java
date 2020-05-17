@@ -12,9 +12,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -30,10 +28,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private static final String TAG = "MainActivity";
     private Activity mActivity = MainActivity.this;
-    private BluetoothAdapter bluetoothAdapter;
-    private BluetoothDevice mTempTargetDevice;
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothDevice mTargetDevice;
 
-    private enum Connected { False, Pending, True }
+    private enum Connected {
+        False,
+        Pending,
+        True
+    }
 
     private SerialSocket socket;
     private SerialService service;
@@ -48,53 +50,92 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         receiveText = findViewById(R.id.tv_receive_text);
 
         if(mActivity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            mActivity.bindService(new Intent(mActivity, SerialService.class), this, Context.BIND_AUTO_CREATE);
         }
 
-        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                send("1");
-            }
-        });
         findViewById(R.id.btn_open).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                send("0");
+                send(getString(R.string.SIGNAL_TEXT_LIGHT_ON));
             }
         });
+        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                send(getString(R.string.SIGNAL_TEXT_LIGHT_OFF));
+            }
+        });
+        findViewById(R.id.btn_retry).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                refresh();
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (connected != Connected.False) {
+            disconnect();
+        }
+        mActivity.stopService(new Intent(mActivity, SerialService.class));
+
+        try {
+            mActivity.unbindService(this);
+        } catch(Exception ignored) {
+            Log.d(TAG, "onDestroy: unbind service failed");
+        }
+
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if(service != null) {
+            service.attach(this);
+        } else {
+            // prevents service destroy on unbind from recreated activity caused by orientation change
+            mActivity.startService(new Intent(mActivity, SerialService.class));
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if(service != null && !mActivity.isChangingConfigurations()) {
+            service.detach();
+        }
+        super.onStop();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if(bluetoothAdapter != null) {
-            for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
+        if(mBluetoothAdapter == null) {
+            Toast.makeText(mActivity, "<bluetooth not supported>", Toast.LENGTH_SHORT).show();
+        } else if(!mBluetoothAdapter.isEnabled()) {
+            Toast.makeText(mActivity, "<bluetooth is disabled>", Toast.LENGTH_SHORT).show();
+        }
+
+        refresh();
+    }
+
+    private void refresh(){
+        if(mBluetoothAdapter != null) {
+            for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
                 if (device.getType() != BluetoothDevice.DEVICE_TYPE_LE) {
-                    Log.d(TAG, "onResume: " + device.getName() + " address " + device.getAddress());
-                    if (device.getName().equals("HC-05")){
-                        mTempTargetDevice = device;
-                        refresh();
+                    Log.d(TAG, "onResume: Device name: " + device.getName() + " ｜ Address: " + device.getAddress());
+                    if (device.getName().equals(getString(R.string.TARGET_BLUETOOTH_DEVICE_NAME))){
+                        mTargetDevice = device;
                     }
                 }
             }
         }
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        if (connected != Connected.False)
-            disconnect();
-        mActivity.stopService(new Intent(mActivity, SerialService.class));
-    }
-
-    private void refresh(){
-        mActivity.bindService(new Intent(mActivity, SerialService.class), this, Context.BIND_AUTO_CREATE);
-
-        if(initialStart && service !=null) {
+        if(initialStart && service != null) {
             initialStart = false;
             mActivity.runOnUiThread(new Runnable() {
                 @Override
@@ -107,14 +148,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     private void connect() {
         try {
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            BluetoothDevice device = mTempTargetDevice;
-            String deviceName = device.getName() != null ? device.getName() : device.getAddress();
-            status("connecting...");
-            connected = Connected.Pending;
-            socket = new SerialSocket();
-            service.connect(this, "Connected to " + deviceName);
-            socket.connect(this, service, device);
+            BluetoothDevice device = mTargetDevice;
+            if (device != null){
+                String deviceName = device.getName() != null ? device.getName() : device.getAddress();
+                status("connecting...");
+                connected = Connected.Pending;
+                socket = new SerialSocket();
+                service.connect(this, "Connected to " + deviceName);
+                socket.connect(this, service, device);
+            } else {
+                Toast.makeText(mActivity, "<no bluetooth devices found>", Toast.LENGTH_SHORT).show();
+            }
         } catch (Exception e) {
             onSerialConnectError(e);
         }
@@ -128,30 +172,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     private void send(String str) {
-        Log.d(TAG, "send: " + str);
         if(connected != Connected.True) {
             Toast.makeText(mActivity, "not connected", Toast.LENGTH_SHORT).show();
             return;
         }
         try {
             SpannableStringBuilder spn = new SpannableStringBuilder(str+'\n');
-//            spn.setSpan(new ForegroundColorSpan(0, 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             receiveText.append(spn);
             byte[] data = (str + "\n").getBytes();
             socket.write(data);
         } catch (Exception e) {
             onSerialIoError(e);
         }
-    }
-
-    private void receive(byte[] data) {
-        receiveText.append(new String(data));
-    }
-
-    private void status(String str) {
-        SpannableStringBuilder spn = new SpannableStringBuilder(str+'\n');
-//        spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        receiveText.append(spn);
     }
 
     @Override
@@ -171,6 +203,18 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     public void onServiceDisconnected(ComponentName name) {
         service = null;
+    }
+
+    /*
+     * Message and log helpers
+     */
+    private void receive(byte[] data) {
+        receiveText.append(new String(data));
+    }
+
+    private void status(String str) {
+        SpannableStringBuilder spn = new SpannableStringBuilder(str+'\n');
+        receiveText.append(spn);
     }
 
     /*

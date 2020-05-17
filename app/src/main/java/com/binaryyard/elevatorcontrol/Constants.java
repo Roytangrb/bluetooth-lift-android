@@ -8,7 +8,5 @@ public class Constants {
 
     // values have to be unique within each app
     public static final int NOTIFY_MANAGER_START_FOREGROUND_SERVICE = 1001;
-
-//    private Constants() {}
 }
 
