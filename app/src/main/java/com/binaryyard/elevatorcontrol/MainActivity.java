@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (connected != Connected.False) {
             disconnect();
         }
-        mActivity.stopService(new Intent(mActivity, SerialService.class));
 
         try {
             mActivity.unbindService(this);
@@ -98,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             service.attach(this);
         } else {
             // prevents service destroy on unbind from recreated activity caused by orientation change
-            mActivity.startService(new Intent(mActivity, SerialService.class));
+            mActivity.bindService(new Intent(mActivity, SerialService.class), this, Context.BIND_AUTO_CREATE);
         }
     }
 
