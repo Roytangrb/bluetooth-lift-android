@@ -13,6 +13,7 @@
   - [RxAndroidBle](https://github.com/Polidea/RxAndroidBle)
 
 ## BLE References
+ - [HC-05 with BLE](https://www.youtube.com/watch?v=1i-6cz4KHXE)
  - [Android in peripheral mode example video](https://youtu.be/Wkk2YA4auvM)
  - [Can an android device be a peripheral?](https://devzone.nordicsemi.com/f/nordic-q-a/26730/can-an-android-device-be-a-peripheral)
  - [BLE on iOS introduction](https://codeburst.io/getting-started-with-bluetooth-low-energy-on-ios-ada3090fc9cc)
