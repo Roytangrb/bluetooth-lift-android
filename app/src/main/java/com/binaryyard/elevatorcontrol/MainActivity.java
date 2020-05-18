@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private TextView receiveText;
 
     private static final String TAG = "MainActivity";
+    private static final int REQUEST_ENABLE_BT = 11;
     private Activity mActivity = MainActivity.this;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mTargetDevice;
@@ -47,12 +48,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        receiveText = findViewById(R.id.tv_receive_text);
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(mActivity, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
         if(mActivity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             mActivity.bindService(new Intent(mActivity, SerialService.class), this, Context.BIND_AUTO_CREATE);
         }
+
+        receiveText = findViewById(R.id.tv_receive_text);
 
         findViewById(R.id.btn_open).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,9 +120,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         super.onResume();
 
         if(mBluetoothAdapter == null) {
-            Toast.makeText(mActivity, "<bluetooth not supported>", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mActivity, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
         } else if(!mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(mActivity, "<bluetooth is disabled>", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mActivity, R.string.ble_is_disabled, Toast.LENGTH_SHORT).show();
         }
 
         refresh();

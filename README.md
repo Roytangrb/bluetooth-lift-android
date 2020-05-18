@@ -17,3 +17,4 @@
  - [Android in peripheral mode example video](https://youtu.be/Wkk2YA4auvM)
  - [Can an android device be a peripheral?](https://devzone.nordicsemi.com/f/nordic-q-a/26730/can-an-android-device-be-a-peripheral)
  - [BLE on iOS introduction](https://codeburst.io/getting-started-with-bluetooth-low-energy-on-ios-ada3090fc9cc)
+ - [Android BLE doc](https://developer.android.com/guide/topics/connectivity/bluetooth-le)
