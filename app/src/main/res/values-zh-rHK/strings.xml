@@ -6,4 +6,7 @@
     <string name="retry">重試</string>
     <string name="ble_not_supported">該手機不支持低功耗藍芽</string>
     <string name="ble_is_disabled">藍芽已關閉</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notification</string>
 </resources>

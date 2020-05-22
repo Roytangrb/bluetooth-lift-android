@@ -11,4 +11,7 @@
     <string name="retry">retry</string>
     <string name="ble_not_supported">Bluetooth LE not supported</string>
     <string name="ble_is_disabled">Bluetooth is disabled</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notification</string>
 </resources>
