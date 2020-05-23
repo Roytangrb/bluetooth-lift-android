@@ -10,7 +10,7 @@
   - Start using wifi ADB (make sure to connect to the same Wi-Fi)
 
 ## Libraries
-  - [Bleno](https://github.com/noble/bleno) Simulate BLE peripherals in Node.js
+  - [QRCode](https://github.com/kenglxn/QRGen)
   - [BlueCap](https://github.com/troystribling/BlueCap) 
   - [RxBluetoothKit](https://github.com/Polidea/RxBluetoothKit)
   - [RxAndroidBle](https://github.com/Polidea/RxAndroidBle)

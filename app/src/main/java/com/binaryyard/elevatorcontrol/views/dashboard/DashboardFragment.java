@@ -44,7 +44,11 @@ public class DashboardFragment extends Fragment {
             public void onClick(View v) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String timestamp = dateFormat.format(Calendar.getInstance().getTime());
-                Bitmap myBitmap = QRCode.from(timestamp).bitmap();
+                Bitmap myBitmap = QRCode
+                        .from(timestamp)
+                        .withCharset("UTF-8")
+                        .withSize(250, 250)
+                        .bitmap();
                 qrCodeContainer.setImageBitmap(myBitmap);
             }
         });
