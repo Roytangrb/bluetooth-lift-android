@@ -6,14 +6,18 @@ import androidx.lifecycle.ViewModel;
 
 public class NotificationsViewModel extends ViewModel {
 
-    private MutableLiveData<String> mText;
+    private MutableLiveData<String> mServiceUUID;
 
     public NotificationsViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is notifications fragment");
+        mServiceUUID = new MutableLiveData<>();
+        mServiceUUID.setValue("62944f1d5399ab5fbbded89f3f582988");
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    public LiveData<String> getServiceUUID() {
+        return mServiceUUID;
+    }
+
+    public void setServiceUUID(String newUUID){
+        mServiceUUID.postValue(newUUID);
     }
 }
