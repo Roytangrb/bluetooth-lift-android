@@ -1,12 +1,19 @@
 package com.binaryyard.elevatorcontrol.views.notifications;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,18 +23,21 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.binaryyard.elevatorcontrol.R;
 
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 public class NotificationsFragment extends Fragment {
 
     private static final String TAG = "NotificationsFragment";
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
+    private final int ADVERTISE_TIMEOUT_MS = 5000;
     private NotificationsViewModel notificationsViewModel;
 
     private TextView mTvServiceUUID;
@@ -39,14 +49,29 @@ public class NotificationsFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
 
         mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
+        mTvServiceUUID.setText(getString(R.string.ble_advertise_test_uuid));
+        /*
         notificationsViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 mTvServiceUUID.setText(s);
             }
         });
+        */
 
         mBtnAdvertise = root.findViewById(R.id.btn_advertise);
+
+        if( !BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported() ) {
+            Toast.makeText( getActivity(), "Advertisement not supported", Toast.LENGTH_SHORT ).show();
+            mBtnAdvertise.setEnabled(false);
+        } else {
+            mBtnAdvertise.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    advertise();
+                }
+            });
+        }
 
         return root;
     }
@@ -111,5 +136,44 @@ public class NotificationsFragment extends Fragment {
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    //Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
+    private void advertise(){
+        Toast.makeText( getActivity(), "Advertising", Toast.LENGTH_SHORT ).show();
+
+        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+
+        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
+                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
+                .setTimeout(ADVERTISE_TIMEOUT_MS)
+                .setConnectable(false)
+                .build();
+
+        ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.ble_advertise_test_uuid ) ) );
+
+        AdvertiseData data = new AdvertiseData.Builder()
+                .setIncludeDeviceName(false)
+                .setIncludeTxPowerLevel(false)
+                .addServiceUuid( pUuid )
+//                .addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
+                .build();
+
+        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                Log.d(TAG, "onStartSuccess: "+settingsInEffect.toString());
+                super.onStartSuccess(settingsInEffect);
+            }
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
+                super.onStartFailure(errorCode);
+            }
+        };
+
+        advertiser.startAdvertising( settings, data, advertisingCallback );
     }
 }
