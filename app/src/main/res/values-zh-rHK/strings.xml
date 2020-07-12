@@ -10,4 +10,6 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notification</string>
     <string name="advertise">advertise</string>
+    <string name="title_qr_code">QR Code</string>
+    <string name="title_advertise">Advertise</string>
 </resources>

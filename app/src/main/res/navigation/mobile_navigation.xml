@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_notifications">
+    app:startDestination="@+id/navigation_advertise">
 
 <!--    <fragment-->
 <!--        android:id="@+id/navigation_home"-->
@@ -12,14 +12,14 @@
 <!--        tools:layout="@layout/fragment_home" />-->
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.binaryyard.elevatorcontrol.views.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_qrcode"
+        android:name="com.binaryyard.elevatorcontrol.views.qrcode.QRCodeFragment"
+        android:label="@string/title_qr_code"
+        tools:layout="@layout/fragment_qrcode" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.binaryyard.elevatorcontrol.views.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_advertise"
+        android:name="com.binaryyard.elevatorcontrol.views.advertise.AdvertiseFragment"
+        android:label="@string/title_advertise"
+        tools:layout="@layout/fragment_advertise" />
 </navigation>

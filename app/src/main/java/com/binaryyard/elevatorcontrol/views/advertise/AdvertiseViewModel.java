@@ -1,14 +1,14 @@
-package com.binaryyard.elevatorcontrol.views.notifications;
+package com.binaryyard.elevatorcontrol.views.advertise;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class NotificationsViewModel extends ViewModel {
+public class AdvertiseViewModel extends ViewModel {
 
     private MutableLiveData<String> mServiceUUID;
 
-    public NotificationsViewModel() {
+    public AdvertiseViewModel() {
         mServiceUUID = new MutableLiveData<>();
         mServiceUUID.setValue("62944f1d5399ab5fbbded89f3f582988");
     }

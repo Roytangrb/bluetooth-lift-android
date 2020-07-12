@@ -1,16 +1,16 @@
-package com.binaryyard.elevatorcontrol.views.dashboard;
+package com.binaryyard.elevatorcontrol.views.qrcode;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class DashboardViewModel extends ViewModel {
+public class QRCodeViewModel extends ViewModel {
 
     private MutableLiveData<String> mText;
 
-    public DashboardViewModel() {
+    public QRCodeViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+        mText.setValue("Click to view QR Code");
     }
 
     public LiveData<String> getText() {

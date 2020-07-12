@@ -1,4 +1,4 @@
-package com.binaryyard.elevatorcontrol.views.notifications;
+package com.binaryyard.elevatorcontrol.views.advertise;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -21,12 +21,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.binaryyard.elevatorcontrol.R;
 
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -35,27 +33,27 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-public class NotificationsFragment extends Fragment {
+public class AdvertiseFragment extends Fragment {
 
-    private static final String TAG = "NotificationsFragment";
+    private static final String TAG = "AdvertiseFragment";
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
     private final int ADVERTISE_TIMEOUT_MS = 5000;
     private static final int REQUEST_ENABLE_BT = 11;
-    private NotificationsViewModel notificationsViewModel;
+    private AdvertiseViewModel advertiseViewModel;
 
     private TextView mTvServiceUUID;
     private Button mBtnAdvertise;
     private Timer mRefreshTimer;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        notificationsViewModel = new ViewModelProvider(this).get(NotificationsViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_notifications, container, false);
+        advertiseViewModel = new ViewModelProvider(this).get(AdvertiseViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_advertise, container, false);
 
         mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
         mTvServiceUUID.setText(getString(R.string.ble_advertise_test_uuid));
         /*
-        notificationsViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
+        advertiseViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 mTvServiceUUID.setText(s);
@@ -147,7 +145,7 @@ public class NotificationsFragment extends Fragment {
             byte[] digest = md.digest();
 
             String hash = bytesToHex(digest);
-            notificationsViewModel.setServiceUUID(hash);
+            advertiseViewModel.setServiceUUID(hash);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
