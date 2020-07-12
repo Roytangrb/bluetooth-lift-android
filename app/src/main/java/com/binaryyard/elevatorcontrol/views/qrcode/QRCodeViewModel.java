@@ -4,16 +4,43 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 public class QRCodeViewModel extends ViewModel {
 
-    private MutableLiveData<String> mText;
+    private MutableLiveData<String> mTitle;
 
     public QRCodeViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("Click to view QR Code");
+        mTitle = new MutableLiveData<>();
+        mTitle.setValue("");
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    public LiveData<String> getTitle() {
+        return mTitle;
+    }
+
+    public void setTitle(String s){
+        mTitle.postValue(s);
+    }
+
+    public String formatTitle(String sitecode, long timestamp, String uuid, String data, String signkey) {
+        return "Site code: " + sitecode + "\n" +
+                "Timestamp:  " + timestamp + "(" + getLocaleDate(timestamp) + ")\n" +
+                "UUID: " + uuid + "\n" +
+                "Data: " + data + "\n" +
+                "Sign Key: " + signkey;
+    }
+
+    private String getLocaleDate(long seconds){
+        Date date = new Date(seconds * 1000L);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+
+        String formattedDate = dateFormat.format(date);
+
+        return formattedDate;
     }
 }

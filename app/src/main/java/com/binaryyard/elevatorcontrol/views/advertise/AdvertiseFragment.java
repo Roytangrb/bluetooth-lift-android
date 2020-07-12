@@ -52,7 +52,7 @@ public class AdvertiseFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_advertise, container, false);
 
         mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
-        mTvServiceUUID.setText(getString(R.string.ble_advertise_test_uuid));
+        mTvServiceUUID.setText(getString(R.string.BLE_ADVERTISE_TEST_UUID));
         /*
         advertiseViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -188,7 +188,7 @@ public class AdvertiseFragment extends Fragment {
                 .setConnectable(true)
                 .build();
 
-        ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.ble_advertise_test_uuid ) ) );
+        ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.BLE_ADVERTISE_TEST_UUID) ) );
 
         AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
