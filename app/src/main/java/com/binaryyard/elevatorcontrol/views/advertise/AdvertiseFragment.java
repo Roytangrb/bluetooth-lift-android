@@ -9,6 +9,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,7 +39,7 @@ public class AdvertiseFragment extends Fragment {
     private static final String TAG = "AdvertiseFragment";
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
-    private final int ADVERTISE_TIMEOUT_MS = 5000;
+    private final int ADVERTISE_TIMEOUT_MS = 10000;
     private static final int REQUEST_ENABLE_BT = 11;
     private AdvertiseViewModel advertiseViewModel;
 
@@ -164,6 +165,7 @@ public class AdvertiseFragment extends Fragment {
     //Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
     private void advertise(){
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothAdapter.setName("CHBLE");
 
         if (!bluetoothAdapter.isEnabled()){
             enableBLE();
@@ -177,19 +179,19 @@ public class AdvertiseFragment extends Fragment {
 
         Toast.makeText( getActivity(), "Advertising", Toast.LENGTH_SHORT ).show();
 
-        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+        final BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
 
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
                 .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
                 .setTimeout(ADVERTISE_TIMEOUT_MS)
-                .setConnectable(false)
+                .setConnectable(true)
                 .build();
 
         ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.ble_advertise_test_uuid ) ) );
 
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(false)
+                .setIncludeDeviceName(true)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid( pUuid )
 //                .addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
@@ -200,11 +202,19 @@ public class AdvertiseFragment extends Fragment {
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 Log.d(TAG, "onStartSuccess: "+settingsInEffect.toString());
                 super.onStartSuccess(settingsInEffect);
+
+                mBtnAdvertise.setEnabled(false);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mBtnAdvertise.setEnabled(true);
+                    }
+                }, ADVERTISE_TIMEOUT_MS);
             }
 
             @Override
             public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
+                Log.e(TAG, "Advertising onStartFailure: " + errorCode );
                 super.onStartFailure(errorCode);
             }
         };
