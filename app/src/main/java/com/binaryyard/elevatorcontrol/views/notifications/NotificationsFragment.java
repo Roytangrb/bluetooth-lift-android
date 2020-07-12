@@ -1,10 +1,13 @@
 package com.binaryyard.elevatorcontrol.views.notifications;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -38,6 +41,7 @@ public class NotificationsFragment extends Fragment {
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
     private final int ADVERTISE_TIMEOUT_MS = 5000;
+    private static final int REQUEST_ENABLE_BT = 11;
     private NotificationsViewModel notificationsViewModel;
 
     private TextView mTvServiceUUID;
@@ -61,17 +65,19 @@ public class NotificationsFragment extends Fragment {
 
         mBtnAdvertise = root.findViewById(R.id.btn_advertise);
 
-        if( !BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported() ) {
-            Toast.makeText( getActivity(), "Advertisement not supported", Toast.LENGTH_SHORT ).show();
+        if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText( getActivity(), R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             mBtnAdvertise.setEnabled(false);
-        } else {
-            mBtnAdvertise.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    advertise();
-                }
-            });
+        } else{
+            enableBLE();
         }
+
+        mBtnAdvertise.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                advertise();
+            }
+        });
 
         return root;
     }
@@ -111,6 +117,25 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
+    private void enableBLE() {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT){
+            if (resultCode == Activity.RESULT_OK){
+                mBtnAdvertise.setEnabled(true);
+            }
+        }
+    }
+
     private void updateServiceUUID() {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -140,6 +165,18 @@ public class NotificationsFragment extends Fragment {
 
     //Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
     private void advertise(){
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (!bluetoothAdapter.isEnabled()){
+            enableBLE();
+            return;
+        }
+
+        if ( !bluetoothAdapter.isMultipleAdvertisementSupported() ) {
+            Toast.makeText( getActivity(), "Advertisement not supported", Toast.LENGTH_SHORT ).show();
+            return;
+        }
+
         Toast.makeText( getActivity(), "Advertising", Toast.LENGTH_SHORT ).show();
 
         BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
