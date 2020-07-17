@@ -25,12 +25,13 @@ public class QRCodeViewModel extends ViewModel {
         mTitle.postValue(s);
     }
 
-    public String formatTitle(String sitecode, long timestamp, String uuid, String data, String signkey) {
+    public String formatTitle(String sitecode, long timestamp, String uuid, String data, String signkey, String qrcode) {
         return "Site code: " + sitecode + "\n" +
                 "Timestamp:  " + timestamp + "(" + getLocaleDate(timestamp) + ")\n" +
                 "UUID: " + uuid + "\n" +
                 "Data: " + data + "\n" +
-                "Sign Key: " + signkey;
+                "Sign Key: " + signkey + "\n" +
+                "QR Code: "+ qrcode + "\n";
     }
 
     private String getLocaleDate(long seconds){

@@ -2,6 +2,7 @@ package com.binaryyard.elevatorcontrol.views.qrcode;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,15 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.binaryyard.elevatorcontrol.R;
+import com.binaryyard.elevatorcontrol.classes.Utils;
 
 import net.glxn.qrgen.android.QRCode;
 
+import java.io.ByteArrayOutputStream;
 import java.util.zip.CRC32;
 
 public class QRCodeFragment extends Fragment {
-
+    private static final String TAG = "QRCodeFragment";
     private QRCodeViewModel QRCodeViewModel;
     private ImageView ivQRCode;
 
@@ -57,18 +60,42 @@ public class QRCodeFragment extends Fragment {
     }
 
     private void refreshQRCode(){
-        long timestamp = getFloorUnixSeconds();
+        String sitecode = getString(R.string.SITE_CODE);
         String uuid = "73F14D4D8E47C090";
+        long timestamp = getFloorUnixSeconds();
+
+        // encode QRCode Data
+        byte[] uuidBytes = Utils.hexToBytes(uuid); // 8 bytes
+        byte[] timestampBytes = Utils.longToBytes(timestamp); // 8 bytes
+        byte[] data = new byte[8];
+        for (int i = 0; i < data.length; i ++){
+            data[i] = (byte) (uuidBytes[i] ^ timestampBytes[i]);
+        }
+
+        //encode Sign Key
+        byte[] sitecodeBytes = Utils.hexToBytes(sitecode);
+        byte[] temp = Utils.concatByteArr(data, sitecodeBytes);
+        byte[] secretBytes = Utils.concatByteArr(temp, timestampBytes);
 
         CRC32 crc32 = new CRC32();
-        crc32.update(String.valueOf(timestamp).getBytes());
-        String data = Long.toHexString(crc32.getValue());
+        crc32.update(secretBytes);
+        String signKey = Long.toHexString(crc32.getValue()).toUpperCase();
+
+        // combine to qrcode
+        String qrcode = Utils.bytesToHex(data) + signKey;
 
         QRCodeViewModel.setTitle(
-                QRCodeViewModel.formatTitle(getString(R.string.SITE_CODE), timestamp, uuid, data, "")
+                QRCodeViewModel.formatTitle(
+                        sitecode,
+                        timestamp,
+                        Utils.bytesToHex(uuidBytes),
+                        Utils.bytesToHex(data),
+                        signKey,
+                        qrcode
+                )
         );
         Bitmap myBitmap = QRCode
-                .from(String.valueOf(timestamp))
+                .from(qrcode)
                 .withCharset("UTF-8")
                 .withSize(250, 250)
                 .bitmap();
@@ -77,7 +104,7 @@ public class QRCodeFragment extends Fragment {
 
     private long getFloorUnixSeconds(){
         long unixSeconds = System.currentTimeMillis() / 1000L;
-        long floorSeconds = unixSeconds / 10L * 10L;
+        long floorSeconds = unixSeconds - (unixSeconds % 10);
         return floorSeconds;
     }
 }
