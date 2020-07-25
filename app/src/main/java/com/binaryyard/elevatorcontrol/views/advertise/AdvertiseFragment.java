@@ -39,11 +39,11 @@ public class AdvertiseFragment extends Fragment {
 
     private static final String TAG = "AdvertiseFragment";
     private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
-    private final int ADVERTISE_TIMEOUT_MS = 10000;
+    private final int ADVERTISE_TIMEOUT_MS = 2000;
     private static final int REQUEST_ENABLE_BT = 11;
     private AdvertiseViewModel advertiseViewModel;
 
-    private TextView mTvServiceUUID;
+    // private TextView mTvServiceUUID;
     private Button mBtnAdvertise;
     private Timer mRefreshTimer;
 
@@ -51,8 +51,8 @@ public class AdvertiseFragment extends Fragment {
         advertiseViewModel = new ViewModelProvider(this).get(AdvertiseViewModel.class);
         View root = inflater.inflate(R.layout.fragment_advertise, container, false);
 
-        mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
-        mTvServiceUUID.setText(getString(R.string.BLE_ADVERTISE_TEST_UUID));
+        // mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
+        // mTvServiceUUID.setText(getString(R.string.BLE_ADVERTISE_TEST_UUID));
         /*
         advertiseViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -152,10 +152,10 @@ public class AdvertiseFragment extends Fragment {
         }
     }
 
-    //Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
+    // Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
     private void advertise(){
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        bluetoothAdapter.setName("CHBLE");
+        // bluetoothAdapter.setName("CHBLE");
 
         if (!bluetoothAdapter.isEnabled()){
             enableBLE();
@@ -163,11 +163,11 @@ public class AdvertiseFragment extends Fragment {
         }
 
         if ( !bluetoothAdapter.isMultipleAdvertisementSupported() ) {
-            Toast.makeText( getActivity(), "Advertisement not supported", Toast.LENGTH_SHORT ).show();
+            Toast.makeText( getActivity(), R.string.advertisement_not_supported, Toast.LENGTH_SHORT ).show();
             return;
         }
 
-        Toast.makeText( getActivity(), "Advertising", Toast.LENGTH_SHORT ).show();
+        Toast.makeText( getActivity(), R.string.advertising, Toast.LENGTH_SHORT ).show();
 
         final BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
 
@@ -175,7 +175,7 @@ public class AdvertiseFragment extends Fragment {
                 .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
                 .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
                 .setTimeout(ADVERTISE_TIMEOUT_MS)
-                .setConnectable(true)
+                .setConnectable(false)
                 .build();
 
         ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.BLE_ADVERTISE_TEST_UUID) ) );
@@ -184,7 +184,7 @@ public class AdvertiseFragment extends Fragment {
                 .setIncludeDeviceName(true)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid( pUuid )
-//                .addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
+                // .addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
                 .build();
 
         AdvertiseCallback advertisingCallback = new AdvertiseCallback() {

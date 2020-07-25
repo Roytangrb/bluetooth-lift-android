@@ -12,8 +12,9 @@
     <string name="close">close</string>
     <string name="retry">retry</string>
     <string name="ble_not_supported">Bluetooth LE not supported</string>
-    <string name="ble_is_disabled">Bluetooth is disabled</string>
     <string name="advertise">advertise</string>
     <string name="title_qr_code">QR Code</string>
     <string name="title_advertise">Advertise</string>
+    <string name="advertisement_not_supported">Advertisement not supported</string>
+    <string name="advertising">Advertising</string>
 </resources>

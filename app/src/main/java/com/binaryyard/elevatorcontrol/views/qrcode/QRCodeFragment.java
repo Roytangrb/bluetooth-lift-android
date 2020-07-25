@@ -17,21 +17,27 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.binaryyard.elevatorcontrol.R;
 import com.binaryyard.elevatorcontrol.classes.Utils;
+import com.google.zxing.EncodeHintType;
 
 import net.glxn.qrgen.android.QRCode;
 
-import java.io.ByteArrayOutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.zip.CRC32;
 
 public class QRCodeFragment extends Fragment {
+
     private static final String TAG = "QRCodeFragment";
+    private final int QRCODE_REFRESH_INTERVAL = 1000; //check every second
     private QRCodeViewModel QRCodeViewModel;
     private ImageView ivQRCode;
+    private Timer mRefreshTimer;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         QRCodeViewModel = new ViewModelProvider(this).get(QRCodeViewModel.class);
         View root = inflater.inflate(R.layout.fragment_qrcode, container, false);
 
+        /* debug
         final TextView textView = root.findViewById(R.id.text_dashboard);
         QRCodeViewModel.getTitle().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -39,24 +45,51 @@ public class QRCodeFragment extends Fragment {
                 textView.setText(s);
             }
         });
+        */
 
         ivQRCode = root.findViewById(R.id.iv_qrcode_container);
 
-        ivQRCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                refreshQRCode();
-            }
-        });
-
         return root;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (mRefreshTimer != null) {
+            mRefreshTimer.cancel();
+            mRefreshTimer = null;
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mRefreshTimer != null) {
+            mRefreshTimer.cancel();
+            mRefreshTimer = null;
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        refreshQRCode();
+        if (mRefreshTimer == null) {
+            mRefreshTimer = new Timer();
+            mRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    getActivity().runOnUiThread(new TimerTask() {
+                        @Override
+                        public void run() {
+                            refreshQRCode();
+                        }
+                    });
+                }
+            }, 0, QRCODE_REFRESH_INTERVAL);
+        }
     }
 
     private void refreshQRCode(){
@@ -84,6 +117,7 @@ public class QRCodeFragment extends Fragment {
         // combine to qrcode
         String qrcode = Utils.bytesToHex(data) + signKey;
 
+        /* debug
         QRCodeViewModel.setTitle(
                 QRCodeViewModel.formatTitle(
                         sitecode,
@@ -94,10 +128,13 @@ public class QRCodeFragment extends Fragment {
                         qrcode
                 )
         );
+         */
+
         Bitmap myBitmap = QRCode
                 .from(qrcode)
                 .withCharset("UTF-8")
                 .withSize(250, 250)
+                .withHint(EncodeHintType.MARGIN, 0)
                 .bitmap();
         ivQRCode.setImageBitmap(myBitmap);
     }

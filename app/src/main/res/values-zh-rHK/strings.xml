@@ -5,8 +5,9 @@
     <string name="close">關</string>
     <string name="retry">重試</string>
     <string name="ble_not_supported">該手機不支持低功耗藍芽</string>
-    <string name="ble_is_disabled">藍芽已關閉</string>
     <string name="advertise">發送</string>
     <string name="title_qr_code">二維碼</string>
     <string name="title_advertise">廣播</string>
+    <string name="advertisement_not_supported">設備不支持</string>
+    <string name="advertising">正在發送</string>
 </resources>
