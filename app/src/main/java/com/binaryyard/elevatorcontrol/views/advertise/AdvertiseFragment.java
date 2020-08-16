@@ -22,46 +22,32 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.binaryyard.elevatorcontrol.R;
 import com.binaryyard.elevatorcontrol.classes.Utils;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
+import java.util.zip.CRC32;
 
+/*
+ * @description
+ *  1. check BLE advertise supported, enable BLE if necessary
+ *  2. on 'advertise' button clicked, refresh service uuid then advertise for 2 seconds
+ */
 public class AdvertiseFragment extends Fragment {
 
     private static final String TAG = "AdvertiseFragment";
-    private final int SERVICE_UUID_REFRESH_INTERVAL = 10000;
     private final int ADVERTISE_TIMEOUT_MS = 2000;
     private static final int REQUEST_ENABLE_BT = 11;
-    private AdvertiseViewModel advertiseViewModel;
 
-    // private TextView mTvServiceUUID;
+    private String mServiceUUID;
+    private TextView mTvServiceUUID;
     private Button mBtnAdvertise;
-    private Timer mRefreshTimer;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        advertiseViewModel = new ViewModelProvider(this).get(AdvertiseViewModel.class);
         View root = inflater.inflate(R.layout.fragment_advertise, container, false);
 
-        // mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
-        // mTvServiceUUID.setText(getString(R.string.BLE_ADVERTISE_TEST_UUID));
-        /*
-        advertiseViewModel.getServiceUUID().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                mTvServiceUUID.setText(s);
-            }
-        });
-        */
-
+        mTvServiceUUID = root.findViewById(R.id.tv_service_uuid);
         mBtnAdvertise = root.findViewById(R.id.btn_advertise);
 
         if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -74,46 +60,12 @@ public class AdvertiseFragment extends Fragment {
         mBtnAdvertise.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                refreshServiceUUID();
                 advertise();
             }
         });
 
         return root;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        if (mRefreshTimer != null) {
-            mRefreshTimer.cancel();
-            mRefreshTimer = null;
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        if (mRefreshTimer != null) {
-            mRefreshTimer.cancel();
-            mRefreshTimer = null;
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (mRefreshTimer == null) {
-            mRefreshTimer = new Timer();
-            mRefreshTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    updateServiceUUID();
-                }
-            }, 0, SERVICE_UUID_REFRESH_INTERVAL);
-        }
     }
 
     private void enableBLE() {
@@ -135,21 +87,39 @@ public class AdvertiseFragment extends Fragment {
         }
     }
 
-    private void updateServiceUUID() {
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        String needle = df.format(c.getTime());
+    private void refreshServiceUUID() {
+        // Filter - 32 bits (4 bytes)
+        String filter = getString(R.string.BLE_ADVERTISE_FILTER);
 
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(needle.getBytes());
-            byte[] digest = md.digest();
+        // The Rest of 96 bits (12 bytes = uuid 8 bytes + sign key 4 bytes)
+        String sitecode = getString(R.string.SITE_CODE);
+        String uuid = "73F14D4D8E47C090";
+        long timestamp = getFloorUnixSeconds();
 
-            String hash = Utils.bytesToHex(digest);
-            advertiseViewModel.setServiceUUID(hash);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        // encode Data
+        byte[] uuidBytes = Utils.hexToBytes(uuid); // 8 bytes
+        byte[] timestampBytes = Utils.longToBytes(timestamp); // 8 bytes
+        byte[] data = new byte[8];
+        for (int i = 0; i < data.length; i ++){
+            data[i] = (byte) (uuidBytes[i] ^ timestampBytes[i]);
         }
+
+        //encode Sign Key
+        byte[] sitecodeBytes = Utils.hexToBytes(sitecode);
+        byte[] temp = Utils.concatByteArr(data, sitecodeBytes);
+        byte[] secretBytes = Utils.concatByteArr(temp, timestampBytes);
+
+        CRC32 crc32 = new CRC32();
+        crc32.update(secretBytes);
+        String signKey = Long.toHexString(crc32.getValue()).toUpperCase();
+
+        // combine to 128 bits service uuid
+        String service_uuid = Utils.toUUIDFormatStr(
+                filter + Utils.bytesToHex(data) + signKey
+        );
+
+        mServiceUUID = service_uuid;
+        mTvServiceUUID.setText(mServiceUUID);
     }
 
     // Reference: https://code.tutsplus.com/tutorials/how-to-advertise-android-as-a-bluetooth-le-peripheral--cms-25426
@@ -178,7 +148,7 @@ public class AdvertiseFragment extends Fragment {
                 .setConnectable(false)
                 .build();
 
-        ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.BLE_ADVERTISE_TEST_UUID) ) );
+        ParcelUuid pUuid = new ParcelUuid( UUID.fromString(mServiceUUID) );
 
         AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
@@ -210,5 +180,10 @@ public class AdvertiseFragment extends Fragment {
         };
 
         advertiser.startAdvertising( settings, data, advertisingCallback );
+    }
+    private long getFloorUnixSeconds(){
+        long unixSeconds = System.currentTimeMillis() / 1000L;
+        long floorSeconds = unixSeconds - (unixSeconds % 10);
+        return floorSeconds;
     }
 }

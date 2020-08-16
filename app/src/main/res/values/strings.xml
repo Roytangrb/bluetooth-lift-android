@@ -1,7 +1,7 @@
 <resources>
     <!-- Configurable string values -->
     <string name="SITE_CODE" translatable="false">ABC7950D</string>
-    <string name="BLE_ADVERTISE_TEST_UUID" translatable="false">ABC7950D-73F1-4D4D-8E47-C090502DBD63</string>
+    <string name="BLE_ADVERTISE_FILTER" translatable="false">ABC7950D</string>
     <string name="TARGET_BLUETOOTH_DEVICE_NAME" translatable="false">HC-05</string>
     <string name="SIGNAL_TEXT_LIGHT_ON" translatable="false">0</string>
     <string name="SIGNAL_TEXT_LIGHT_OFF" translatable="false">1</string>

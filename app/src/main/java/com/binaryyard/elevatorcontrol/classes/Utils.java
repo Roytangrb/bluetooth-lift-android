@@ -44,4 +44,10 @@ public class Utils {
         System.arraycopy(b, 0, c, a.length, b.length);
         return c;
     }
+
+    public static String toUUIDFormatStr(String string_without_dashes){
+        return string_without_dashes.replaceFirst(
+                "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"
+        );
+    }
 }
